@@ -65,7 +65,7 @@ classdef Chromosome
             %object.rnvec(object.rnvec>1)=1;
             %object.rnvec(object.rnvec<0)=0;
             
-            %SBX二进制交叉
+            %SBX
             dim=length(p1.rnvec);
             yita1=0.6;
             x_max=1;
@@ -81,7 +81,7 @@ classdef Chromosome
                end
                off_1(j)=0.5*((1+gama(j))*p1.rnvec(j)+(1-gama(j))*p2.rnvec(j));
                off_2(j)=0.5*((1-gama(j))*p1.rnvec(j)+(1+gama(j))*p2.rnvec(j));
-               %使子代在定义域内
+               %make offsprings in the defined field
                if(off_1(j)>x_max)
                    off_1(j)=x_max;
                elseif(off_1(j)<x_min)
@@ -121,7 +121,7 @@ classdef Chromosome
                    delta(j)=1-(2*(1-u2(j)))^(1/(yita2+1));
                end
                off_1(j)=off_1(j)+delta(j);
-               %使子代在定义域内
+               %make offsprings in the defined field
                if(off_1(j)>x_max)
                    off_1(j)=x_max;
                elseif(off_1(j)<x_min)

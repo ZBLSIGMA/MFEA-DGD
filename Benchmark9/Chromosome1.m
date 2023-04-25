@@ -59,7 +59,7 @@ classdef Chromosome1
         
         % SBX
         function object=crossover1(object,p1,p2,cf,relatedD)
-            %找到p1和p2的对应变量
+            %
             r1 = relatedD(p1.skill_factor,:);
             r2 = relatedD(p2.skill_factor,:);
             flag = false;

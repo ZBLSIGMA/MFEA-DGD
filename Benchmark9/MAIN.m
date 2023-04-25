@@ -6,7 +6,7 @@ rmp=0.7;% random mating probability
 reps = 20; % repetitions 20
 
 gama=0.07;
-sigma=0.01; %sigma <= 0则是随机选
+sigma=0.01; %sigma <= 0 indicates randomly selection
 
 xoperator="DGDX";
 

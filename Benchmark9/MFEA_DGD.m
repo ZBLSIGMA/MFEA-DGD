@@ -72,7 +72,7 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps,gama,sigma,xoperator,
             count=1;
             b=rand(1);
             f=randperm(5);
-            %把sigma改为随机选
+            % change to randomly selection
             if sigma <= 0
               for i=1:5
                 if f(1)==i 

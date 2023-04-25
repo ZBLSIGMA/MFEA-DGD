@@ -8,7 +8,7 @@ reps = 1; % repetitions 20
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 gama=0.07;
-sigma=0; %sigma <= 0则是随机选
+sigma=0; %sigma <= 0 indicates randomly selection
 xoperator="SBX";  % SBX  DGDX
 moperator="DGDM";  % PM  DGDM
 
