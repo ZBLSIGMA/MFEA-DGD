@@ -13,51 +13,22 @@
 
 ## Multifactorial Evolutionary Algorithm Based on Diffusion Gradient Descent (MFEA-DGD)
 
-This is the code for implementing the MFEA-DGD algorithm presented in the paper:
+This is the matlab code for implementing the MFEA-DGD algorithm presented in the paper:
 "Multifactorial Evolutionary Algorithm Based on Diffusion Gradient Descent".
 <br>
 <br>
 
-## Table of contents
-  - [Algorithm Principles](#development)
-    - [Adding to Chrome](#adding-to-chrome)
-  - [Paper citation](#paper-citation)
 
 ## Algorithm Introduction
 
-Clone this repository and navigate inside the project folder and install the dependencies by running:
+The proposed MFEA-DGD algorithm incorporates new reproduction operators and an effective hyper-rectangle search strategy. The proposed MFEA-DGD is characterized by innovative crossover and mutation operators that simulate the dynamics of the DGD algorithm. In addition, a hyper rectangular search strategy is introduced to allow MFEA-DGD to explore more underdeveloped areas in the unified express space of all tasks and the subspace of each task.
 
-```sh
-npm ci
-```
-
-After installing the dependencies, build the project by executing:
-
-```sh
-npm run build
-```
-
-Run the tests
-
-```sh
-npm run test
-```
+<br>
+<br>
 
 ## Benchmark Description
 
-To install the developer version follow the steps below. To just use the extension download from [**chrome.google.com/webstore/nsfw-filter**](https://chrome.google.com/webstore/detail/nsfw-filter/kmgagnlkckiamnenbpigfaljmanlbbhh).
-
-To run development version in clean environment use command:
-
-```sh
-npm run dev:chrome
-```
-
-<br>
-<br>
-
-## Conclusion
-
+The two example benchmarks provided in this paper are sourced from the CEC 2017 and 2021 Evolutionary Multitask Optimization Competitions.
 
 <br>
 <br>
@@ -66,11 +37,11 @@ npm run dev:chrome
 
 If you used this code for your experiments or found it helpful, consider citing the following paper:
 
-<pre>
+```sh
 @article{Liu2023Multifactorial,
   title={Multifactorial evolutionary algorithm based on diffusion gradient descent},
   author={Z. Liu, G. Li, H. Zhang, Z. Liang, and Z. Zhu*},
   journal={IEEE Transactions on Cybernetics},
   year={2023(accepted)}
 }
-</pre>
+```

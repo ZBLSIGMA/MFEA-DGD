@@ -7,7 +7,7 @@ rmp=0.7;% random mating probability
 reps = 20; % repetitions 20
 
 %######################
-gama=0.07; 
+gama=0.1; 
 sigma=0;  %sigma <= 0 indicates randomly selection
 xoperator="DGDX";  
 moperator="DGDM";  
