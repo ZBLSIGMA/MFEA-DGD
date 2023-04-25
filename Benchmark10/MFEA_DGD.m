@@ -1,8 +1,10 @@
-function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
+function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps,gama,sigma,xoperator,moperator)
 %MFEA function: implementation of MFEA algorithm
     %clc    
     tic     
     pop = pop_M;
+    mu = 2;     % Index of Simulated Binary Crossover (tunable)
+    mum = 5;    % Index of polynomial mutation
     if mod(pop,2) ~= 0
         pop = pop + 1;
     end   
@@ -12,10 +14,10 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
     end
     D=zeros(1,no_of_tasks);
     for i=1:no_of_tasks
-        D(i)=Tasks(i).dims;
+        D(i)=Tasks(i).dim;
     end
     D_multitask=max(D);
-    options = optimoptions(@fminunc,'Display','off','Algorithm','quasi-newton','MaxIter',2);  % settings for individual learning
+   % options = optimoptions(@fminunc,'Display','off','Algorithm','quasi-newton','MaxIter',2);  % settings for individual learning
     M1 = ones(1,D_multitask);
     M2 = ones(1,D_multitask);
     p=0.5;
@@ -27,9 +29,8 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
     for rep = 1:reps
         disp(rep)
         for i = 1 : pop
-            population(i) = Chromosome();
-            population(i) = initialize(population(i),D_multitask,p_il,options);
-            %population(i) = initialize(population(i),D_multitask);
+            population(i) = Chromosome1();
+            population(i) = initialize(population(i),D_multitask);
             if i < pop/2
                  population(i).skill_factor=1;
             else
@@ -37,7 +38,7 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
             end
         end
         for i = 1 : pop
-            [population(i),calls_per_individual(i)] = evaluate_vec(population(i),Tasks,p_il,no_of_tasks,options);
+            [population(i),calls_per_individual(i)] = evaluate(population(i),Tasks,no_of_tasks);
         end
         fnceval_calls(rep)=fnceval_calls(rep) + sum(calls_per_individual);
         TotalEvaluations(rep,1)=fnceval_calls(rep);
@@ -70,13 +71,16 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                 a = 1;
             end
             count=1;
-          b=rand(1);
-          f=randperm(5);
-          for i=1:5
-          if f(1)==i 
-              sigma=10^(-i); 
-          end
-          end
+            b=rand(1);
+          
+            f=randperm(5);
+            if sigma <= 0
+              for i=1:5
+                  if f(1)==i 
+                      sigma=10^(-i); 
+                  end
+              end
+            end
             
             for i = 1 : pop/2     
                 
@@ -91,12 +95,12 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
      
                 
                 
-                child(count)=Chromosome();
-                child(count+1)=Chromosome();
-                child(count+2)=Chromosome();
-                child(count+3)=Chromosome();
-                child(count+4)=Chromosome();
-                child(count+5)=Chromosome();
+                child(count)=Chromosome1();
+                child(count+1)=Chromosome1();
+                child(count+2)=Chromosome1();
+                child(count+3)=Chromosome1();
+                child(count+4)=Chromosome1();
+                child(count+5)=Chromosome1();
                 child(count).survival =0;
                 child(count+1).survival =0;
                 child(count+2).survival =0;
@@ -119,23 +123,23 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                  L1=zeros(1,RT);
                  for i=1:2
                  for j=1:RT
-                     child(count+2*i)=Chromosome();
-                     child(count+2*i+1)=Chromosome();
+                     child(count+2*i)=Chromosome1();
+                     child(count+2*i+1)=Chromosome1();
                      sd=E';
                      child(count+2*i).rnvec= population(p(i)).rnvec+sd(j,:).*sigma;
                      child(count+2*i+1).rnvec=population(p(i)).rnvec-sd(j,:).*sigma;
-        [child(count+2*i).factorial_costs(q(i)),rnvec, funcCount]=fnceval(Tasks(q(i)),child(count+2*i).rnvec,p_il,options);
-        [child(count+2*i+1).factorial_costs(q(i)),rnvec, funcCount]=fnceval(Tasks(q(i)),child(count+2*i+1).rnvec,p_il,options);
+        [child(count+2*i).factorial_costs(q(i)),funcCount]=fnceval(Tasks(q(i)),child(count+2*i).rnvec);
+        [child(count+2*i+1).factorial_costs(q(i)),funcCount]=fnceval(Tasks(q(i)),child(count+2*i+1).rnvec);
                       L1(j)=child(count+2*i).factorial_costs(q(i))-child(count+2*i+1).factorial_costs(q(i));
-                    child(count+2*i).grad= q(i);
-                    child(count+2*i+1).grad= q(i);
+                    
                  end
                  for j=1:RT
                      QWE(i,:)= QWE(i,:)+(sd(j,:).* L1(j))/(sigma*RT);
                  end
                  LL(1:i)=max(L);
                  end
-                 r=0.4;
+                 %r=0.4;
+                 r=gama;
                  if norm(QWE)>L
                      L=(1-r)*norm(QWE) + r*L;
                  end
@@ -145,27 +149,31 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                 cf(u>0.5)=-0.6*rand(1);
                 if population(p1).skill_factor == population(p2).skill_factor       % crossover      
                    
-                        
+                    if xoperator=="SBX"
+                        child(count) = crossover(child(count),population(p1),population(p2),cf);
+                    else
                         child(count) = crossover11(child(count),population(p1),population(p2),cf,QWE,L,sigma);
-                         if population(p1).skill_factor ==1
-                          if rand(1) > a
-                                %The upper and lower limits of the unified express space are [0, 1]
-                                %According to the rule of the opposite point generation in the unified representation space
-                                %here is x' = 0+(1-x);
-                                child(count+1).rnvec = 1 - child(count).rnvec;
-                            else
-                                child(count+1).rnvec = k*(max_T1+min_T1) - child(count).rnvec;
-                          end 
+                    end
+
+                    if population(p1).skill_factor ==1
+                        if rand(1) > a
+                            %The upper and lower limits of the unified express space are [0, 1]
+                            %According to the rule of the opposite point generation in the unified representation space
+                            %here is x' = 0+(1-x);
+                            child(count+1).rnvec = 1 - child(count).rnvec;
                         else
-                            if rand(1) > a
-                                %The upper and lower limits of the unified express space are [0, 1]
-                                %According to the rule of the opposite point generation in the unified representation space
-                                %here is x' = 0+(1-x);
-                                child(count+1).rnvec = 1 - child(count).rnvec;
-                            else
-                                child(count+1).rnvec = k*(max_T2+min_T2) - child(count).rnvec;
-                            end 
-                        end
+                            child(count+1).rnvec = k*(max_T1+min_T1) - child(count).rnvec;
+                        end 
+                    else
+                        if rand(1) > a
+                            %The upper and lower limits of the unified express space are [0, 1]
+                            %According to the rule of the opposite point generation in the unified representation space
+                            %here is x' = 0+(1-x);
+                            child(count+1).rnvec = 1 - child(count).rnvec;
+                        else
+                            child(count+1).rnvec = k*(max_T2+min_T2) - child(count).rnvec;
+                        end 
+                    end
                
                     child(count).skill_factor = population(p1).skill_factor;
                     child(count+1).skill_factor = population(p1).skill_factor;
@@ -180,7 +188,12 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                              %tmp.rnvec = population(p1).rnvec .* M1;
                             % tmp.rnvec(tmp.rnvec>1) = 1;
                              %tmp.rnvec(tmp.rnvec<0) = 0;
-                            child(count) = crossover11(child(count),population(p1),population(p2),cf,QWE,L,sigma);
+                            
+                            if xoperator=="SBX"
+                                child(count) = crossover(child(count),population(p1),population(p2),cf);
+                            else
+                                child(count) = crossover11(child(count),population(p1),population(p2),cf,QWE,L,sigma);
+                            end
                             if rand(1) > a
                                 %The upper and lower limits of the unified express space are [0, 1]
                                 %According to the rule of the opposite point generation in the unified representation space
@@ -202,7 +215,13 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                              %tmp.rnvec = population(p2).rnvec .* M2;
                              %tmp.rnvec(tmp.rnvec>1) = 1;
                              %tmp.rnvec(tmp.rnvec<0) = 0;
-                            child(count) = crossover11(child(count),population(p1),population(p2),cf,QWE,L,sigma);
+
+                            if xoperator=="SBX"
+                                child(count) = crossover(child(count),population(p1),population(p2),cf);
+                            else
+                                child(count) = crossover11(child(count),population(p1),population(p2),cf,QWE,L,sigma);
+                            end
+
                              if rand(1) > a
                                 %The upper and lower limits of the unified express space are [0, 1]
                                 %According to the rule of the opposite point generation in the unified representation space
@@ -228,8 +247,13 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                     child(count+4).skill_factor=round(rand(1))+1;
                     child(count+5).skill_factor=round(rand(1))+1;
                 else
-                    child(count)=mutate1(child(count),population(p1),D_multitask,QWE(1,:),L,sigma);
-                    child(count+1)=mutate1(child(count+1),population(p2),D_multitask,QWE(2,:),L,sigma);
+                    if moperator == "PM"
+                        child(count)=mutate(child(count),population(p1),D_multitask,mum);
+                        child(count+1)=mutate(child(count+1),population(p2),D_multitask,mum);
+                    else
+                        child(count)=mutate1(child(count),population(p1),D_multitask,QWE(1,:),L,sigma);
+                        child(count+1)=mutate1(child(count+1),population(p2),D_multitask,QWE(2,:),L,sigma);
+                    end
                     child(count).skill_factor = population(p1).skill_factor;
                     child(count+2).skill_factor=population(p1).skill_factor;
                     child(count+3).skill_factor=population(p1).skill_factor;
@@ -253,11 +277,15 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                 
                  
             end        
+%             for i = 1 : 3*pop            
+%                 [child(i),calls_per_individual(i)] = evaluate(child(i),Tasks,no_of_tasks);           
+%             end    
+            % 新增
             for i = 1 :6: 3*pop            
-                [child(i),calls_per_individual(i)] = evaluate_vec(child(i),Tasks,p_il,no_of_tasks,options);           
+                [child(i),calls_per_individual(i)] = evaluate(child(i),Tasks,no_of_tasks);           
             end
              for i = 2 :6:3*pop            
-                [child(i),calls_per_individual(i)] = evaluate_vec(child(i),Tasks,p_il,no_of_tasks,options);           
+                [child(i),calls_per_individual(i)] = evaluate(child(i),Tasks,no_of_tasks);           
             end
             
             
@@ -266,11 +294,12 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                     if child(l).skill_factor == child(l).grad
                          child(l).factorial_costs(3-child(l).skill_factor)=inf;
                     else
-                        [child(l).factorial_costs(child(l).skill_factor),object.rnvec,funcCount]=fnceval(Tasks(child(l).skill_factor),child(l).rnvec,p_il,options);
+                        [child(l).factorial_costs(child(l).skill_factor),funcCount]=fnceval(Tasks(child(l).skill_factor),child(l).rnvec);
                          child(l).factorial_costs(3-child(l).skill_factor)=inf;
                     end
             end 
             end
+            % 新增
             
             fnceval_calls(rep)=fnceval_calls(rep) + sum(calls_per_individual);
             TotalEvaluations(rep,generation)=fnceval_calls(rep);
@@ -306,8 +335,8 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps)
                 disp(['MFEA Generation = ', num2str(generation), ' best factorial costs = ', num2str(bestobj)]);         
         end 
     end
-    MFEA_TLS.wall_clock_time=toc;
+    %MFEA_TLS.wall_clock_time=toc;
     MFEA_TLS.EvBestFitness=EvBestFitness;
-    MFEA_TLS.bestInd_data=bestInd_data;
-    MFEA_TLS.TotalEvaluations=TotalEvaluations;
+    %MFEA_TLS.bestInd_data=bestInd_data;
+    %MFEA_TLS.TotalEvaluations=TotalEvaluations;
 end

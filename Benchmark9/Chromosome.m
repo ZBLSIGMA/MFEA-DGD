@@ -52,8 +52,52 @@ classdef Chromosome
 
         function object=crossover11(object,p1,p2,cf,QWE,L,sigma)             
             p1.rnvec=p1.rnvec-QWE(1,:).*sigma/L;
-             p2.rnvec=p2.rnvec-QWE(2,:).*sigma/L;
+            p2.rnvec=p2.rnvec-QWE(2,:).*sigma/L;
             object.rnvec=0.5*((1+cf).*p1.rnvec + (1-cf).*p2.rnvec);
+            object.rnvec(object.rnvec>1)=1;
+            object.rnvec(object.rnvec<0)=0;
+        end
+
+        function object=crossover_sbx(object,p1,p2,cf,QWE,L,sigma,isfirst)             
+            %p1.rnvec=p1.rnvec-QWE(1,:).*sigma/L;
+            %p2.rnvec=p2.rnvec-QWE(2,:).*sigma/L;
+            %object.rnvec=0.5*((1+cf).*p1.rnvec + (1-cf).*p2.rnvec);
+            %object.rnvec(object.rnvec>1)=1;
+            %object.rnvec(object.rnvec<0)=0;
+            
+            %SBX二进制交叉
+            dim=length(p1.rnvec);
+            yita1=0.6;
+            x_max=1;
+            x_min=0;
+            u1=zeros(1,dim);
+            gama=zeros(1,dim);
+            for j=1:dim
+               u1(j)=rand(1);
+               if u1(j)<0.5
+                   gama(j)=(2*u1(j))^(1/(yita1+1));
+               else
+                   gama(j)=(1/(2*(1-u1(j))))^(1/(yita1+1));
+               end
+               off_1(j)=0.5*((1+gama(j))*p1.rnvec(j)+(1-gama(j))*p2.rnvec(j));
+               off_2(j)=0.5*((1-gama(j))*p1.rnvec(j)+(1+gama(j))*p2.rnvec(j));
+               %使子代在定义域内
+               if(off_1(j)>x_max)
+                   off_1(j)=x_max;
+               elseif(off_1(j)<x_min)
+                   off_1(j)=x_min;
+               end
+               if(off_2(j)>x_max)
+                   off_2(j)=x_max;
+               elseif(off_2(j)<x_min)
+                   off_2(j)=x_min;
+               end
+            end
+            if isfirst==1
+                object.rnvec=off_1;
+            else
+                object.rnvec=off_2;
+            end
             object.rnvec(object.rnvec>1)=1;
             object.rnvec(object.rnvec<0)=0;
         end
@@ -61,6 +105,30 @@ classdef Chromosome
         function object=mutate1(object,p,dim,qq,L,sigma)          
             object.rnvec = p.rnvec-qq.*sigma/L;          
         end    
+
+        function object=mutate_pm(object,p,dim,qq,L,sigma)  
+            x_num=p.rnvec;
+            yita2=0.6;
+            x_max=1;
+            x_min=0;
+            u2=zeros(1,x_num);
+            delta=zeros(1,x_num);
+            for j=1:x_num
+               u2(j)=rand(1);
+               if(u2(j)<0.5)
+                   delta(j)=(2*u2(j))^(1/(yita2+1))-1;
+               else
+                   delta(j)=1-(2*(1-u2(j)))^(1/(yita2+1));
+               end
+               off_1(j)=off_1(j)+delta(j);
+               %使子代在定义域内
+               if(off_1(j)>x_max)
+                   off_1(j)=x_max;
+               elseif(off_1(j)<x_min)
+                   off_1(j)=x_min;
+               end
+            end
+        end
         
         % polynomial mutation
         function object=mutate(object,p,dim,mum)
