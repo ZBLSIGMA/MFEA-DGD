@@ -280,7 +280,7 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps,gama,sigma,xoperator,
 %             for i = 1 : 3*pop            
 %                 [child(i),calls_per_individual(i)] = evaluate(child(i),Tasks,no_of_tasks);           
 %             end    
-            % 新增
+            %
             for i = 1 :6: 3*pop            
                 [child(i),calls_per_individual(i)] = evaluate(child(i),Tasks,no_of_tasks);           
             end
@@ -299,7 +299,7 @@ function MFEA_TLS = MFEA_DGD(Tasks,pop_M,gen,rmp,p_il,reps,gama,sigma,xoperator,
                     end
             end 
             end
-            % 新增
+            %
             
             fnceval_calls(rep)=fnceval_calls(rep) + sum(calls_per_individual);
             TotalEvaluations(rep,generation)=fnceval_calls(rep);
